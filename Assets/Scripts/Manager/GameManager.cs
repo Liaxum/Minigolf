@@ -31,6 +31,7 @@ namespace Manager
         None,
         Playing,
         Failed,
-        Complete
+        Complete,
+        Pause
     }
 }

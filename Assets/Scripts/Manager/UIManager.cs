@@ -11,9 +11,9 @@ namespace Manager
         // Reference to power bar
         [SerializeField] private Image powerBar;
         // Reference to remaining shot count
-        [SerializeField] private Text shotText;
+        [SerializeField] private Text shotText, timerText, currentShotScore, currentTimer, bestShotScore, bestTimer;
         // Important GameObject
-        [SerializeField] private GameObject mainMenu, gameMenu, gameOverPanel, retryBtn, nextBtn;
+        [SerializeField] private GameObject mainMenu, gameMenu, gameOverPanel, gamePauseMenu, HUD, retryBtn, nextBtn;
         [SerializeField] private GameObject container, lvlBtnPrefab;
     
         // public
@@ -21,6 +21,7 @@ namespace Manager
     
         // Getters
         public Text ShotText => shotText;
+        public Text TimerText => timerText;
         public Image PowerBar => powerBar;
     
         private void Awake()
@@ -47,6 +48,7 @@ namespace Manager
                 // Spawn the selected level
                 case GameStatus.Failed:
                 case GameStatus.Complete:
+                case GameStatus.Pause:    
                     mainMenu.SetActive(false);
                     gameMenu.SetActive(true);
                     LevelManager.Instance.SpawnLevel(GameManager.Instance.currentLevelIndex);
@@ -66,7 +68,7 @@ namespace Manager
                 // Get the reference to the button
                 Button button = buttonObj.GetComponent<Button>();
                 // Add a Listener to the button
-                button.onClick.AddListener(() => OnClick(button));                          //add listner to button
+                button.onClick.AddListener(() => OnClick(button));
             }
         }
 
@@ -80,12 +82,30 @@ namespace Manager
             // Set the current level equal to the current sibling index button
             GameManager.Instance.currentLevelIndex = btn.transform.GetSiblingIndex();
             // Spawn the level
-            LevelManager.Instance.SpawnLevel(GameManager.Instance.currentLevelIndex);      //spawn level
+            LevelManager.Instance.SpawnLevel(GameManager.Instance.currentLevelIndex);
         }
 
         // Method call after level fail or win
         public void GameResult()
         {
+            // We set the current score of the level
+            currentTimer.text = "Timer : " + FormatTimer(TimerManager.Instance.elapsedTime);
+            currentShotScore.text = "Shot : " + LevelManager.Instance.ShotCount;
+            
+            // We check if the player already played the level
+            // Otherwise we dont need to display the best score and less timers
+            int tmpBestShot = PlayerPrefs.GetInt("BestScore_" + GameManager.Instance.currentLevelIndex);
+            float tmpBestTimer = PlayerPrefs.GetFloat("BestTimer_" + GameManager.Instance.currentLevelIndex);
+            if (tmpBestShot != 0 && tmpBestTimer != 0)
+            {
+                bestTimer.text = "Best Timer : " + FormatTimer(tmpBestTimer);
+                bestShotScore.text = "Best Shot : " + tmpBestShot;
+            }
+            else
+            {
+                bestTimer.text = "";
+                bestShotScore.text = "";
+            }
         
             switch (GameManager.Instance.gameStatus)
             {
@@ -95,6 +115,7 @@ namespace Manager
                 case GameStatus.Complete:
                     gameOverPanel.SetActive(true);
                     nextBtn.SetActive(true);
+                    HUD.SetActive(false);
                     SoundManager.Instance.PlayFx(FxTypes.GameCompleteFx);
                     break;
                 // If the game is failed
@@ -103,7 +124,11 @@ namespace Manager
                 case GameStatus.Failed:
                     gameOverPanel.SetActive(true);
                     retryBtn.SetActive(true);
+                    HUD.SetActive(false);
                     SoundManager.Instance.PlayFx(FxTypes.GameOverFx);
+                    break;
+                case GameStatus.Pause:
+                    gamePauseMenu.SetActive(true);
                     break;
             }
         }
@@ -120,7 +145,21 @@ namespace Manager
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
+        
+        public void ResumeBtn()
+        {
+            GameManager.Instance.gameStatus = GameStatus.Playing;
+            gamePauseMenu.SetActive(false);
+        }
 
+        public string FormatTimer(float time)
+        {
+            // Reset the time for the next lvl
+            int minutes = Mathf.FloorToInt(time / 60F);
+            int seconds = Mathf.FloorToInt(time % 60F);
+                
+            return string.Format("{0:00}:{1:00}", minutes, seconds);
+        }
 
     }
 }

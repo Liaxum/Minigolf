@@ -59,6 +59,8 @@ public class Ball : MonoBehaviour
         _direction = _startPos - _endPos;
         // Add the force to the ball in the given direction
         _rgBody.AddForce(_direction * _strength, ForceMode.Impulse);
+        // Play the sound of the shoot
+        SoundManager.Instance.PlayFx(FxTypes.ShotFx);
         // Reset the power bar to zero
         UIManager.Instance.PowerBar.fillAmount = 0;
         // Reset the strength to zero

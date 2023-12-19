@@ -18,8 +18,17 @@ namespace Manager
         private void Update()
         {
             // If the game is not playing return immediately
-            if (GameManager.Instance.gameStatus != GameStatus.Playing) return; 
-        
+            if (GameManager.Instance.gameStatus != GameStatus.Playing) return;
+            // If the player presses the escape key
+            // the game is paused
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                GameManager.Instance.gameStatus = GameStatus.Pause;
+                UIManager.Instance.GameResult();
+            }
+
+            Time.timeScale = GameManager.Instance.gameStatus == GameStatus.Pause ? 0f : 1f;
+            
             // If the mouse button is clicked and It's not possible to rotate
             // Get the distance between the ball and the mouse click
             // Set the rotation possible
@@ -30,9 +39,10 @@ namespace Manager
 
                 // If distance is less than the limit allowed
                 // We can control the ball
-                if (_distanceBetweenBallAndMouseClick <= distanceBetweenBallAndMouseClickLimit) Ball.Instance.MouseDownMethod();
+                if (_distanceBetweenBallAndMouseClick <= distanceBetweenBallAndMouseClickLimit)
+                    Ball.Instance.MouseDownMethod();
             }
-        
+            
             // If it's impossible to rotate do nothing
             if (!_canRotate) return;
             // If the mouse is clicked and the distance is less than the limit
@@ -70,6 +80,5 @@ namespace Manager
                 _distanceBetweenBallAndMouseClick = Vector3.Distance(v3Pos, Ball.Instance.transform.position);
             }
         }
-
     }
 }

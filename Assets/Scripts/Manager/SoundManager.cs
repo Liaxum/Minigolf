@@ -47,6 +47,6 @@ namespace Manager
     {
         GameOverFx, 
         GameCompleteFx, 
-        ShotFx
+        ShotFx,
     }
 }
